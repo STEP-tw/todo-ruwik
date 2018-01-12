@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const PORT = 8000;
 const webApp = require('./webApp.js');
+const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'}]
 
 const giveFileType = function(url){
   return url.slice(url.lastIndexOf('.'));
@@ -62,7 +63,6 @@ const replaceAndWriteFile = function(filePath,res,content,area){
   });
 }
 
-const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'}]
 
 let loadUser = (req,res)=>{
   let sessionid = req.cookies.sessionid;
@@ -73,11 +73,11 @@ let loadUser = (req,res)=>{
 };
 
 let redirectLoggedInUserToHome = (req,res)=>{
-  if(req.urlIsOneOf(['/public/html/login.html','/public/html/guestBook.html']) && req.user) res.redirect('/public/html/writeCommentHere.html');
+  if(req.urlIsOneOf(['/','/index.html']) && req.user) res.redirect('/public/html/homePage.html');
 }
 
 let redirectLoggedOutUserToLogin = (req,res)=>{
-  if(req.urlIsOneOf(['/logout']) && !req.user) res.redirect('/public/html/login.html');
+  if(req.urlIsOneOf(['/logout']) && !req.user) res.redirect('/');
 }
 
 const app = webApp.create();
@@ -88,18 +88,18 @@ app.use(redirectLoggedInUserToHome);
 
 app.use(redirectLoggedOutUserToLogin);
 
-app.post('/login',(req,res)=>{
+app.post('/homePage.html',(req,res)=>{
   nameOfUser = req.body.userName;
   let user = registered_users.find(u=>u.userName==req.body.userName);
   if(!user) {
     res.setHeader('Set-Cookie',`logInFailed=true`);
-    res.redirect('/login');
+    res.redirect('/');
     return;
   }
   let sessionid = new Date().getTime();
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
-  res.redirect('/public/html/writeCommentHere.html');
+  res.redirect('/public/html/homePage.html');
 });
 
 app.get('/',(req,res)=>{
@@ -116,6 +116,10 @@ app.get('/public/css/index.css',(req,res)=>{
 })
 
 app.get('/public/docs/icon.png',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/public/html/homePage.html',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 
