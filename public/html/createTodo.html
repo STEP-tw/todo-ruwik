@@ -4,15 +4,14 @@
     <meta charset="utf-8">
     <title>create todo</title>
     <link rel="stylesheet" href="/public/css/createTodo.css">
+    <script src="/js/createTodo.js" charset="utf-8"></script>
   </head>
   <body>
     <div>
       <a href="/index.html"><img id="home" src="/public/docs/icon.png" alt=""></a>
     </div>
     <div id="logout">
-      <form action="/logout" method="post">
-        <button type="submit" name='logout'>Logout</button>
-      </form>
+      <a href="/logout"><button type="submit" name='logout'>Logout</button></a>
     </div>
     <p><a href="/index.html">Home Page</a></p>
     <div class="textArea">
@@ -20,5 +19,9 @@
         Title
       </div>
     </div>
+    <ol contenteditable="true" id="list">
+      <li>Start Writing Here</li>
+    </ol>
+    <button type="button" onclick="sendData()" name="save">Save</button>
   </body>
 </html>

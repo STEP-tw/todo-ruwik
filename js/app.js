@@ -1,6 +1,11 @@
 const fs = require('fs');
+const UserTodo = require('./user.js');
+const TodoHandler = require('./todoHandler.js');
 const webApp = require('./webApp.js');
 const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'}]
+let todoDetails = {};
+let todos = {};
+let allTodos = JSON.parse(fs.readFileSync('./data/todos.js','utf8'));
 
 const giveFileType = function(url){
   return url.slice(url.lastIndexOf('.'));
@@ -70,12 +75,14 @@ let loadUser = (req,res)=>{
   }
 };
 
+let forbiddenUrls = ['/homePage','/public/html/homePage.html','/new','/public/html/createTodo.html','/implement','/edit','/delete']
+
 let redirectLoggedInUserToHome = (req,res)=>{
   if(req.urlIsOneOf(['/','/index.html']) && req.user) res.redirect('/public/html/homePage.html');
 }
 
 let redirectLoggedOutUserToLogin = (req,res)=>{
-  if(req.urlIsOneOf(['/homePage']) && !req.user) res.redirect('/index.html');
+  if(req.urlIsOneOf(forbiddenUrls) && !req.user) res.redirect('/index.html');
 }
 
 const app = webApp.create();
@@ -86,6 +93,11 @@ app.use(redirectLoggedInUserToHome);
 
 app.use(redirectLoggedOutUserToLogin);
 
+app.post('/',(req,res)=>{
+  console.log(req.body);
+  res.redirect('/public/html/homePage.html')
+})
+
 app.post('/homePage.html',(req,res)=>{
   let user = registered_users.find(u=>u.userName==req.body.userName);
   if(!user) {
@@ -94,10 +106,28 @@ app.post('/homePage.html',(req,res)=>{
     return;
   }
   let sessionid = new Date().getTime();
+  todoDetails = new UserTodo(req.body.userName);
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
   res.redirect('/public/html/homePage.html');
 });
+
+app.get('/js/createTodo.js',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/logout',(req,res)=>{
+  res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
+  delete req.user.sessionid;
+  res.redirect('/index.html');
+});
+
+app.post('/save',(req,res)=>{
+  todoDetails.addTodo(req.body.todo.split('/n'));
+  allTodos.push(todoDetails);
+  let allTodosLIst = JSON.stringify(allTodos,null,2);
+  fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
+})
 
 app.get('/',(req,res)=>{
   res.redirect('/index.html');
@@ -158,20 +188,21 @@ app.get('/public/docs/edit.png',(req,res)=>{
 app.get('/public/docs/delete.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
+
 app.get('/public/docs/follow.jpg',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 
-let details = {};
-
 app.post('/createTodo.html',(req,res)=>{
-  details = req.body;
+  console.log(todoDetails);
+  todoDetails.addTitle(req.body.title);
+  todoDetails.addDescription(req.body.description)
   res.redirect('./public/html/createTodo.html',res);
 })
 
 app.get('/public/html/createTodo.html',(req,res)=>{
-  let title = details.title;
-  let description = details.description;
+  let title = todoDetails.getTitle();
+  let description = todoDetails.getDescription();
   let detailsInHtml = `<h2>${title}</h2>\n<h3>${description}</h2>`
   replaceAndWriteFile('.'+req.url,res,detailsInHtml,'Title');
 })
