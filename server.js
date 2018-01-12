@@ -77,7 +77,7 @@ let redirectLoggedInUserToHome = (req,res)=>{
 }
 
 let redirectLoggedOutUserToLogin = (req,res)=>{
-  if(req.urlIsOneOf(['/logout']) && !req.user) res.redirect('/');
+  if(req.urlIsOneOf(['/homePage']) && !req.user) res.redirect('/index.html');
 }
 
 const app = webApp.create();
@@ -89,11 +89,10 @@ app.use(redirectLoggedInUserToHome);
 app.use(redirectLoggedOutUserToLogin);
 
 app.post('/homePage.html',(req,res)=>{
-  nameOfUser = req.body.userName;
   let user = registered_users.find(u=>u.userName==req.body.userName);
   if(!user) {
     res.setHeader('Set-Cookie',`logInFailed=true`);
-    res.redirect('/');
+    res.redirect('/indexWithMessage');
     return;
   }
   let sessionid = new Date().getTime();
@@ -119,7 +118,44 @@ app.get('/public/docs/icon.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 
+app.get('/new',(req,res)=>{
+  res.end()
+})
+
+app.get('/implement',(req,res)=>{
+  res.end()
+})
+
+app.get('/edit',(req,res)=>{
+  res.end()
+})
+
+app.get('/delete',(req,res)=>{
+  res.end()
+})
+
 app.get('/public/html/homePage.html',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/public/css/homePage.css',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/indexWithMessage',(req,res)=>{
+  replaceAndWriteFile('./index.html',res,'<center>\nInvalid User Name','</center>');
+})
+
+app.get('/public/docs/new.png',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+app.get('/public/docs/edit.png',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+app.get('/public/docs/delete.png',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+app.get('/public/docs/follow.jpg',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 

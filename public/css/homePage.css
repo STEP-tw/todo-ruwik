@@ -1,0 +1,28 @@
+#logo{
+  display: inline-block;
+  width: auto;
+  height: auto;
+}
+
+#links{
+  margin-top: 30px;
+}
+
+#link{
+  margin: 0px;
+  height: 100px;
+  width: auto;
+}
+
+#headings{
+  margin: 10px;
+}
+
+a{
+  margin: 10px;
+}
+
+#heading{
+  margin-left: 2%;
+  margin-right: 3%;
+}

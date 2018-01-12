@@ -45,9 +45,11 @@ const post = function(url,handler){
 const use = function(handler){
   this._preprocess.push(handler);
 };
+
 let urlIsOneOf = function(urls){
   return urls.includes(this.url);
 }
+
 const main = function(req,res){
   console.log(`${req.method} ${req.url}`);
   res.redirect = redirect.bind(res);
