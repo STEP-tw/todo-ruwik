@@ -1,11 +1,16 @@
 const fs = require('fs');
-const UserTodo = require('./user.js');
+const UserTodo = require('./userTodo.js');
 const TodoHandler = require('./todoHandler.js');
 const webApp = require('./webApp.js');
-const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'}]
+const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'manik',name:'Manindra Krishna Motukuri'}]
 let todoDetails = {};
 let todos = {};
 let allTodos = JSON.parse(fs.readFileSync('./data/todos.js','utf8'));
+
+const decode = function(data){
+  let decodedData = decodeURIComponent(data);
+  return decodedData.replace(/\+/g,' ');
+}
 
 const giveFileType = function(url){
   return url.slice(url.lastIndexOf('.'));
@@ -94,8 +99,11 @@ app.use(redirectLoggedInUserToHome);
 app.use(redirectLoggedOutUserToLogin);
 
 app.post('/',(req,res)=>{
-  console.log(req.body);
   res.redirect('/public/html/homePage.html')
+})
+
+app.get('/save/homePage.html',(req,res)=>{
+  replaceAndWriteFile('./public/html/homePage.html',res,'<body>\n<center><h3>Todo Saved</h3></center>',"<body>")
 })
 
 app.post('/homePage.html',(req,res)=>{
@@ -123,7 +131,7 @@ app.get('/logout',(req,res)=>{
 });
 
 app.post('/save',(req,res)=>{
-  todoDetails.addTodo(req.body.todo.split('/n'));
+  todoDetails.addTodo(req.body.todo.split('\n'));
   allTodos.push(todoDetails);
   let allTodosLIst = JSON.stringify(allTodos,null,2);
   fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
@@ -194,9 +202,9 @@ app.get('/public/docs/follow.jpg',(req,res)=>{
 })
 
 app.post('/createTodo.html',(req,res)=>{
-  console.log(todoDetails);
-  todoDetails.addTitle(req.body.title);
-  todoDetails.addDescription(req.body.description)
+  todoDetails.addTitle(decode(req.body.title));
+  todoDetails.addDescription(decode(req.body.description));
+  todoDetails.addTodoId(new Date().getTime());
   res.redirect('./public/html/createTodo.html',res);
 })
 

@@ -3,5 +3,5 @@ const sendData = function(){
   request.open("POST", '/save', true);
   let todoList = document.getElementById('list').innerText
   request.send(`todo=${todoList}`);
-  window.open('/public/html/homePage.html')
+  window.location.href='/save/homePage.html';
 }

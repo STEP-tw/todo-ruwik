@@ -5,6 +5,10 @@ class UserTodo {
     this.todo = []
     this.title = '';
     this.description = '';
+    this.todoId = 0;
+  }
+  addTodoId(id){
+    this.todoId = id;
   }
   addTodo(todoList){
     this.todo = todoList
