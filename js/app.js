@@ -5,8 +5,8 @@ const webApp = require('./webapp.js');
 const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'manik',name:'Manindra Krishna Motukuri'}]
 let todoDetails = {};
 let todos = {};
-let todoHandler = new TodoHandler();
 let allTodos = JSON.parse(fs.readFileSync('./data/todos.js','utf8'));
+let todoHandler = new TodoHandler(allTodos);
 
 const decode = function(data){
   let decodedData = decodeURIComponent(data);
@@ -15,6 +15,26 @@ const decode = function(data){
 
 const giveFileType = function(url){
   return url.slice(url.lastIndexOf('.'));
+}
+
+const createTodoImgTag = function(id,alt){
+  return `<center><img id="${id}" src="/public/docs/To-Do-List.png" alt=${alt}>\n${alt}<br></center>`
+}
+
+const createDeleteButton = function(id,onclickFunc){
+  return `<center><button id="${id}" type="button" onclick="${onclickFunc}()" name="button">Delete</button></center>`
+}
+
+const createDelDivision = function(innerHtml){
+  return `<div class="Delete">${innerHtml}</div>`
+}
+
+const createTableRow = function(innerHtml){
+  return `<tr>${innerHtml}</tr>`;
+}
+
+const createTableData = function(innerHtml){
+  return `<td>${innerHtml}</td>`;
 }
 
 const contentTypeOfFiles = {
@@ -106,6 +126,14 @@ app.get('/save/homePage.html',(req,res)=>{
   replaceAndWriteFile('./public/html/homePage.html',res,'<body>\n<center><h3>Todo Saved</h3></center>',"<body>")
 })
 
+app.post('/deleteTodo',(req,res)=>{
+  let todoId = req.body.todoId;
+  todoHandler.removeTodo(todoId);
+  allTodos=todoHandler.getTodos();
+  let allTodosLIst = JSON.stringify(allTodos,null,2);
+  fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
+})
+
 app.post('/homePage.html',(req,res)=>{
   let user = registered_users.find(u=>u.userName==req.body.userName);
   if(!user) {
@@ -117,6 +145,7 @@ app.post('/homePage.html',(req,res)=>{
   todoDetails = new UserTodo(req.body.userName);
   res.setHeader('Set-Cookie',`sessionid=${sessionid}`);
   user.sessionid = sessionid;
+  user.userName = req.body.userName
   res.redirect('/public/html/homePage.html');
 });
 
@@ -127,13 +156,15 @@ app.get('/js/createTodo.js',(req,res)=>{
 app.get('/logout',(req,res)=>{
   res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
   delete req.user.sessionid;
+  todoDetails={}
   res.redirect('/index.html');
 });
 
 app.post('/save',(req,res)=>{
   todoDetails.addTodo(req.body.todo.split('\n'));
-  allTodos.push(todoDetails);
   todoHandler.addTodo(todoDetails)
+  todoDetails = {};
+  allTodos=todoHandler.getTodos();
   let allTodosLIst = JSON.stringify(allTodos,null,2);
   fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
 })
@@ -163,12 +194,20 @@ app.get('/new',(req,res)=>{
   readAndWriteFile('./public/html/new.html',res);
 })
 
+app.get('/js/delete.js',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
 app.get('/public/css/new.css',(req,res)=>{
   readAndWriteFile('./public/css/new.css',res);
 })
 
+app.get('/public/docs/To-Do-List.png',(req,res)=>{
+  readAndWriteFile('./public/docs/To-Do-List.png',res);
+})
 
 app.get('/implement',(req,res)=>{
+  res.end();
 })
 
 app.get('/edit',(req,res)=>{
@@ -176,7 +215,27 @@ app.get('/edit',(req,res)=>{
 })
 
 app.get('/delete',(req,res)=>{
-  res.end()
+  let alTodos = todoHandler.getTodos();
+  alTodos=alTodos.filter((e)=>{
+    return req.user.userName == e.userName;
+  })
+  alTodos = alTodos.map((e)=>{
+    let data = createTodoImgTag(e.todoId,e.title)+createDeleteButton(e.todoId,'deleteTodo');
+    data = createDelDivision(data)
+    return createTableData(data)
+  });
+  let data = ''
+  for (var i = 0; i < alTodos.length; i++) {
+    data+=alTodos[i]
+    if((i+1)%3==0){
+      data = createTableRow(data)
+    }
+  }
+  replaceAndWriteFile('./public/html/delete.html',res,'<table>'+data,'<table>');
+})
+
+app.get('/public/css/delete.css',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
 })
 
 app.get('/public/html/homePage.html',(req,res)=>{

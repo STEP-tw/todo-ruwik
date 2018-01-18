@@ -10,17 +10,18 @@ form{
   height: auto;
 }
 
+ol:focus {
+    outline: none;
+}
+
 #logout{
   float: right;
+  width: 100px;
 }
 
 #title{
   display: block;
   text-align: center;
-}
-
-#logout{
-  width: 100px;
 }
 
 .logout{
