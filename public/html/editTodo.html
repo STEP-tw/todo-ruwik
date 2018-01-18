@@ -3,8 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>create todo</title>
-    <link rel="stylesheet" href="/public/css/createTodo.css">
-    <script src="/js/createTodo.js" charset="utf-8"></script>
+    <link rel="stylesheet" href="/public/css/editTodo.css">
+    <script src="/js/editTodo.js" charset="utf-8"></script>
+    <script type="text/javascript">
+      const currentTodo = {};
+    </script>
   </head>
   <body>
     <div>
@@ -17,12 +20,12 @@
     </div>
     <div class="textArea">
       <div id="headings">
-        Title
+        <h2 id="title" contenteditable="true"></h2>
+        <h3 id="description" contenteditable="true"></h3>
       </div>
     </div>
     <ol contenteditable="true" id="list">
-      <li>Start Writing Here</li>
     </ol>
-    <button type="button" onclick="sendData()" name="save">Save</button>
+    <button type="button" onclick="saveEditedTodo()" name="button">Save</button>
   </body>
 </html>

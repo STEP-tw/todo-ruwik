@@ -2,7 +2,7 @@ const fs = require('fs');
 const UserTodo = require('./userTodo.js');
 const TodoHandler = require('./todoHandler.js');
 const webApp = require('./webapp.js');
-const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'manik',name:'Manindra Krishna Motukuri'}]
+const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'mani',name:'Manindra Krishna Motukuri'}]
 let todoDetails = {};
 let todos = {};
 let allTodos = JSON.parse(fs.readFileSync('./data/todos.js','utf8'));
@@ -21,12 +21,12 @@ const createTodoImgTag = function(id,alt){
   return `<center><img id="${id}" src="/public/docs/To-Do-List.png" alt=${alt}>\n${alt}<br></center>`
 }
 
-const createDeleteButton = function(id,onclickFunc){
-  return `<center><button id="${id}" type="button" onclick="${onclickFunc}()" name="button">Delete</button></center>`
+const createButton = function(name,id,onclickFunc){
+  return `<center><button id="${id}" type="button" onclick="${onclickFunc}()" name="button">${name}</button></center>`
 }
 
-const createDelDivision = function(innerHtml){
-  return `<div class="Delete">${innerHtml}</div>`
+const createDivision = function(className,innerHtml){
+  return `<div class="${className}">${innerHtml}</div>`
 }
 
 const createTableRow = function(innerHtml){
@@ -91,7 +91,6 @@ const replaceAndWriteFile = function(filePath,res,content,area){
   });
 }
 
-
 let loadUser = (req,res)=>{
   let sessionid = req.cookies.sessionid;
   let user = registered_users.find(u=>u.sessionid==sessionid);
@@ -118,12 +117,27 @@ app.use(redirectLoggedInUserToHome);
 
 app.use(redirectLoggedOutUserToLogin);
 
+app.post('/editTodo',(req,res)=>{
+  todoHandler.setTodoBeEdited(req.body.todoId);
+})
+
 app.post('/',(req,res)=>{
   res.redirect('/public/html/homePage.html')
 })
 
-app.get('/save/homePage.html',(req,res)=>{
-  replaceAndWriteFile('./public/html/homePage.html',res,'<body>\n<center><h3>Todo Saved</h3></center>',"<body>")
+app.post('/saveEditedTodo',(req,res)=>{
+  let todoToBeSaved = todoHandler.getTodoToBeEdited();
+  todoToBeSaved.time = new Date().toLocaleString();
+  todoToBeSaved.title = req.body.title;
+  todoToBeSaved.description = req.body.description;
+  todoToBeSaved.todo = req.body.todoList.split('\n')
+  todoDetails.addTodo(todoToBeSaved)
+  todoHandler.removeTodo(todoToBeSaved.todoId);
+  todoHandler.addTodo(todoToBeSaved);
+  todoHandler.reset('todoToBeEdited',{});
+  allTodos=todoHandler.getTodos();
+  let allTodosLIst = JSON.stringify(allTodos,null,2);
+  fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
 })
 
 app.post('/deleteTodo',(req,res)=>{
@@ -149,16 +163,13 @@ app.post('/homePage.html',(req,res)=>{
   res.redirect('/public/html/homePage.html');
 });
 
-app.get('/js/createTodo.js',(req,res)=>{
-  readAndWriteFile('.'+req.url,res);
+app.post('/createTodo.html',(req,res)=>{
+  todoDetails.addTitle(decode(req.body.title));
+  todoDetails.addDescription(decode(req.body.description));
+  let idOfTodo = new Date().getTime();
+  todoDetails.addTodoId(idOfTodo);
+  res.redirect('./public/html/createTodo.html',res);
 })
-
-app.get('/logout',(req,res)=>{
-  res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
-  delete req.user.sessionid;
-  todoDetails={}
-  res.redirect('/index.html');
-});
 
 app.post('/save',(req,res)=>{
   todoDetails.addTodo(req.body.todo.split('\n'));
@@ -170,6 +181,48 @@ app.post('/save',(req,res)=>{
   fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
 })
 
+app.get('/editTodoPage',(req,res)=>{
+  let todoToBeEdited = todoHandler.getTodoToBeEdited()
+  todoToBeEdited=JSON.stringify(todoToBeEdited);
+  replaceAndWriteFile('./public/html/editTodo.html',res,todoToBeEdited,'{}')
+})
+
+app.get('/save/homePage.html',(req,res)=>{
+  replaceAndWriteFile('./public/html/homePage.html',res,'<body>\n<center><h3>Todo Saved</h3></center>',"<body>")
+})
+
+app.get('/js/createTodo.js',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/editWithMessage',(req,res)=>{
+  let alTodos = todoHandler.getTodos();
+  alTodos=alTodos.filter((e)=>{
+    return req.user.userName == e.userName;
+  })
+  alTodos = alTodos.map((e)=>{
+    let data = createTodoImgTag(e.todoId,e.title)+createButton('Edit',e.todoId,'editTodo');
+    data = createDivision('todo',data)
+    return createTableData(data)
+  });
+  let data = ''
+  for (var i = 0; i < alTodos.length; i++) {
+    data+=alTodos[i]
+    if((i+1)%3==0){
+      data = createTableRow(data)
+    }
+  }
+  data+="editing susuccessfully"
+  replaceAndWriteFile('./public/html/edit.html',res,'<table>'+data,'<table>');
+})
+
+app.get('/logout',(req,res)=>{
+  res.setHeader('Set-Cookie',[`loginFailed=false,Expires=${new Date(1).toUTCString()}`,`sessionid=0,Expires=${new Date(1).toUTCString()}`]);
+  delete req.user.sessionid;
+  todoDetails={}
+  res.redirect('/index.html');
+});
+
 app.get('/',(req,res)=>{
   res.redirect('/index.html');
   return;
@@ -177,6 +230,14 @@ app.get('/',(req,res)=>{
 
 app.get('/index.html',(req,res)=>{
   readAndWriteFile('./index.html',res);
+})
+
+app.get('/public/css/editTodo.css',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/js/editTodo.js',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
 })
 
 app.get('/public/css/index.css',(req,res)=>{
@@ -212,7 +273,31 @@ app.get('/implement',(req,res)=>{
 })
 
 app.get('/edit',(req,res)=>{
-  res.end()
+  let alTodos = todoHandler.getTodos();
+  alTodos=alTodos.filter((e)=>{
+    return req.user.userName == e.userName;
+  })
+  alTodos = alTodos.map((e)=>{
+    let data = createTodoImgTag(e.todoId,e.title)+createButton('Edit',e.todoId,'editTodo');
+    data = createDivision('todo',data)
+    return createTableData(data)
+  });
+  let data = ''
+  for (var i = 0; i < alTodos.length; i++) {
+    data+=alTodos[i]
+    if((i+1)%3==0){
+      data = createTableRow(data)
+    }
+  }
+  replaceAndWriteFile('./public/html/edit.html',res,'<table>'+data,'<table>');
+})
+
+app.get('/public/css/edit.css',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
+app.get('/js/edit.js',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
 })
 
 app.get('/delete',(req,res)=>{
@@ -221,8 +306,8 @@ app.get('/delete',(req,res)=>{
     return req.user.userName == e.userName;
   })
   alTodos = alTodos.map((e)=>{
-    let data = createTodoImgTag(e.todoId,e.title)+createDeleteButton(e.todoId,'deleteTodo');
-    data = createDelDivision(data)
+    let data = createTodoImgTag(e.todoId,e.title)+createButton('Delete',e.todoId,'deleteTodo');
+    data = createDivision('todo',data)
     return createTableData(data)
   });
   let data = ''
@@ -254,23 +339,17 @@ app.get('/indexWithMessage',(req,res)=>{
 app.get('/public/docs/new.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
+
 app.get('/public/docs/edit.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
+
 app.get('/public/docs/delete.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 
 app.get('/public/docs/follow.jpg',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
-})
-
-app.post('/createTodo.html',(req,res)=>{
-  todoDetails.addTitle(decode(req.body.title));
-  todoDetails.addDescription(decode(req.body.description));
-  let idOfTodo = new Date().getTime();
-  todoDetails.addTodoId(idOfTodo);
-  res.redirect('./public/html/createTodo.html',res);
 })
 
 app.get('/public/html/createTodo.html',(req,res)=>{
@@ -283,6 +362,5 @@ app.get('/public/html/createTodo.html',(req,res)=>{
 app.get('/public/css/createTodo.css',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
-
 
 module.exports = app;

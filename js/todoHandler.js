@@ -1,6 +1,7 @@
 class TodoHandler {
   constructor(todos=[]) {
     this.todos = todos;
+    this.todoToBeEdited = {};
   }
   addTodo(todo){
     this.todos.push(todo);
@@ -19,7 +20,20 @@ class TodoHandler {
   removeTodo(id){
     let index = this.getIndex(id);
     this.todos.splice(index,1);
-    console.log(index);
+  }
+  setTodoBeEdited(id){
+    for (let index = 0;index < this.todos.length;index++) {
+      if(id==this.todos[index].todoId){
+        this.todoToBeEdited=this.todos[index];
+        return;
+      }
+    }
+  }
+  getTodoToBeEdited(){
+    return this.todoToBeEdited;
+  }
+  reset(field,initialValue){
+    this[field]=initialValue;
   }
 }
 
