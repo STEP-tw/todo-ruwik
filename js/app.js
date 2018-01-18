@@ -212,7 +212,7 @@ app.get('/editWithMessage',(req,res)=>{
       data = createTableRow(data)
     }
   }
-  data+="editing susuccessfully"
+  data+="editing successfully"
   replaceAndWriteFile('./public/html/edit.html',res,'<table>'+data,'<table>');
 })
 
