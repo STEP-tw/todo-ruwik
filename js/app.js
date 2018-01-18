@@ -1,10 +1,11 @@
 const fs = require('fs');
 const UserTodo = require('./userTodo.js');
 const TodoHandler = require('./todoHandler.js');
-const webApp = require('./webApp.js');
+const webApp = require('./webapp.js');
 const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'manik',name:'Manindra Krishna Motukuri'}]
 let todoDetails = {};
 let todos = {};
+let todoHandler = new TodoHandler();
 let allTodos = JSON.parse(fs.readFileSync('./data/todos.js','utf8'));
 
 const decode = function(data){
@@ -36,7 +37,6 @@ const giveDate = function(){
   let date = new Date();
   return date.getDate()+"/"+(1+date.getMonth())+'/'+date.getFullYear();
 };
-
 
 const giveContentType = function(url){
   let fileType = giveFileType(url);
@@ -133,6 +133,7 @@ app.get('/logout',(req,res)=>{
 app.post('/save',(req,res)=>{
   todoDetails.addTodo(req.body.todo.split('\n'));
   allTodos.push(todoDetails);
+  todoHandler.addTodo(todoDetails)
   let allTodosLIst = JSON.stringify(allTodos,null,2);
   fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
 })
@@ -154,6 +155,10 @@ app.get('/public/docs/icon.png',(req,res)=>{
   readAndWriteFile('.'+req.url,res);
 })
 
+app.get('/public/docs/logout.jpg',(req,res)=>{
+  readAndWriteFile('.'+req.url,res);
+})
+
 app.get('/new',(req,res)=>{
   readAndWriteFile('./public/html/new.html',res);
 })
@@ -164,7 +169,6 @@ app.get('/public/css/new.css',(req,res)=>{
 
 
 app.get('/implement',(req,res)=>{
-  res.end()
 })
 
 app.get('/edit',(req,res)=>{
@@ -204,7 +208,8 @@ app.get('/public/docs/follow.jpg',(req,res)=>{
 app.post('/createTodo.html',(req,res)=>{
   todoDetails.addTitle(decode(req.body.title));
   todoDetails.addDescription(decode(req.body.description));
-  todoDetails.addTodoId(new Date().getTime());
+  let idOfTodo = new Date().getTime();
+  todoDetails.addTodoId(idOfTodo);
   res.redirect('./public/html/createTodo.html',res);
 })
 

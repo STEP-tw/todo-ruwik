@@ -1,11 +1,49 @@
 #logo{
   display: inline-block;
-  width: auto;
-  height: auto;
+  width: 250px;
+  height: 250px;
 }
 
 #links{
   margin-top: 30px;
+}
+
+a{
+  margin: 10px;
+  font-family: sans-serif;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.new{
+  margin-right: 20px;
+  display: inline-block;
+  width: 100px;
+}
+
+.logout{
+  margin-right: 20px;
+  display: inline-block;
+  width: 100px;
+}
+
+.edit{
+  margin-right: 20px;
+  display: inline-block;
+  width: 100px;
+}
+
+.implement{
+  margin-right: 20px;
+  display: inline-block;
+  width: 100px;
+}
+
+.delete{
+  margin-right: 20px;
+  display: inline-block;
+  height: 100px;
+  width: 124.56px;
 }
 
 #link{
@@ -18,11 +56,7 @@
   margin: 10px;
 }
 
-a{
-  margin: 10px;
-}
-
 #heading{
   margin-left: 2%;
-  margin-right: 3%;
+  margin-right: 10%;
 }
