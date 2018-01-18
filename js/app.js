@@ -2,6 +2,7 @@ const fs = require('fs');
 const UserTodo = require('./userTodo.js');
 const TodoHandler = require('./todoHandler.js');
 const webApp = require('./webapp.js');
+const forbiddenUrls = require('./forbiddenUrls.js').forbiddenUrls;
 const registered_users = [{userName:'manikm',name:'Manindra Krishna Motukuri'},{userName:'mani',name:'Manindra Krishna Motukuri'}]
 let todoDetails = {};
 let todos = {};
@@ -98,8 +99,6 @@ let loadUser = (req,res)=>{
     req.user = user;
   }
 };
-
-let forbiddenUrls = ['/homePage','/public/html/homePage.html','/new','/public/html/createTodo.html','/implement','/edit','/delete']
 
 let redirectLoggedInUserToHome = (req,res)=>{
   if(req.urlIsOneOf(['/','/index.html']) && req.user) res.redirect('/public/html/homePage.html');
@@ -212,7 +211,7 @@ app.get('/editWithMessage',(req,res)=>{
       data = createTableRow(data)
     }
   }
-  data+="editing successfully"
+  data+="edited successfully"
   replaceAndWriteFile('./public/html/edit.html',res,'<table>'+data,'<table>');
 })
 

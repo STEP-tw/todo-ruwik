@@ -1,0 +1,1 @@
+exports.forbiddenUrls = ['/public/html/createTodo.html','/indexWithMessage','/public/html/homePage.html','/delete','/edit','/implement','/editTodo','/saveEditedTodo','/deleteTodo','/createTodo.html','/save','/editTodoPage','/new','/save/homePage.html','/editWithMessage','/logout']
