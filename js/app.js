@@ -163,7 +163,8 @@ app.get('/logout',(req,res)=>{
 app.post('/save',(req,res)=>{
   todoDetails.addTodo(req.body.todo.split('\n'));
   todoHandler.addTodo(todoDetails)
-  todoDetails = {};
+  let name = todoDetails.userName;
+  todoDetails = new UserTodo(name)
   allTodos=todoHandler.getTodos();
   let allTodosLIst = JSON.stringify(allTodos,null,2);
   fs.writeFileSync('./data/todos.js',allTodosLIst,'utf8');
